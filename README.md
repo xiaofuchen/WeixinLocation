@@ -1,8 +1,8 @@
 # WeixinLocation
-使用高德地图仿微信发送位置实现，相似度高达99.99%
+使用高德地图仿最新版微信发送位置实现，相似度高达99.99%
 ##背景
 其实程序猿要开发一个demo的背景，都！一！样！
-说什么为了社会进步，为了挑战自我，都！是！瞎！扯！
+说什么为了社会进步，为了挑战自我，都！是！瞎！扯！蛋！
 无非就是一个背景，产品经理要求实现该功能！！！
 
 ![生无可恋](https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1217559312,2326813221&fm=27&gp=0.jpg>)
@@ -12,9 +12,9 @@
 ![这是一个gif动图](https://github.com/xiaofuchen/WeixinLocation/blob/master/gif/device-2018-01-14-170609%20%5B320i%5D.gif?raw=true)
 
 ##功能
-没什么好说的，用上最新版微信，打开“位置”---“发送位置”，萌萌哒，感觉一个样子有木有，想似度99.99%不是梦
+没什么好说的，用上最新版微信，打开“位置”---“发送位置”，萌萌哒，感觉一个样子有木有，相似度99.99%不是梦
 
-还是巡例说一下：
+还是循例说一下：
 * 定位
 * 定位数据地图标志并列表显示
 * 移动地图获取最新位置信息并显示
@@ -825,7 +825,9 @@ public class SearchActivity extends AppCompatActivity {
 ```
 
 ##结束
-更多详情，请前往我的github去撸[https://github.com/xiaofuchen/WeixinLocation](https://github.com/xiaofuchen/WeixinLocation)
+更多详情，请前往我的github去撸
+[https://github.com/xiaofuchen/WeixinLocation](https://github.com/xiaofuchen/WeixinLocation)
+
 顺手给Stars是中华人民的美德
 谢谢
 ![送美女一枚](http://img.mp.itc.cn/upload/20161102/d678f74eb6c440ec9dc9ebb1d7906cc8.gif)
