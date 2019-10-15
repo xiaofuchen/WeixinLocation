@@ -1,13 +1,20 @@
 package com.weixin.location;
 
+import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -46,34 +53,34 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private MapView mMapView;
-    private ImageView mIvBack;
-    private ImageView mIvSearch;
-    private ImageView mIvLocation;
-    private ImageView mIvCenterLocation;
-    private Button mBtSend;
-    private RecyclerView mRecyclerView;
+    private MapView        mMapView;
+    private ImageView      mIvBack;
+    private ImageView      mIvSearch;
+    private ImageView      mIvLocation;
+    private ImageView      mIvCenterLocation;
+    private Button         mBtSend;
+    private RecyclerView   mRecyclerView;
     private AddressAdapter mAddressAdapter;
-    private List<PoiItem> mList;
-    private PoiItem userSelectPoiItem;
+    private List<PoiItem>  mList;
+    private PoiItem        userSelectPoiItem;
 
-    private AMap mAMap;
+    private AMap   mAMap;
     private Marker mMarker, mLocationGpsMarker, mSelectByListMarker;
-    private UiSettings mUiSettings;
-    private PoiSearch mPoiSearch;
+    private UiSettings      mUiSettings;
+    private PoiSearch       mPoiSearch;
     private PoiSearch.Query mQuery;
-    private boolean isSearchData = false;//是否搜索地址数据
-    private int searchAllPageNum;//Poi搜索最大页数，可应用于上拉加载更多
-    private int searchNowPageNum;//当前poi搜索页数
-    private float zoom = 14;//地图缩放级别
+    private boolean         isSearchData = false;//是否搜索地址数据
+    private int             searchAllPageNum;//Poi搜索最大页数，可应用于上拉加载更多
+    private int             searchNowPageNum;//当前poi搜索页数
+    private float           zoom         = 14;//地图缩放级别
 
-    private AMapLocationClient locationClient = null;
+    private AMapLocationClient       locationClient = null;
     private AMapLocationClientOption locationOption = new AMapLocationClientOption();
-    private AMapLocation location;
-    private AMapLocationListener mAMapLocationListener;
+    private AMapLocation             location;
+    private AMapLocationListener     mAMapLocationListener;
 
-    private onPoiSearchLintener mOnPoiSearchListener;
-    private View.OnClickListener mOnClickListener;
+    private onPoiSearchLintener                   mOnPoiSearchListener;
+    private View.OnClickListener                  mOnClickListener;
     private GeocodeSearch.OnGeocodeSearchListener mOnGeocodeSearchListener;
 
     private Gson gson;
@@ -82,6 +89,10 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int SEARCHREQUESTCODE = 1001;
 
+    // 要申请的权限
+    private String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CALL_PHONE,
+            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         initView();
         initDatas(savedInstanceState);
         initListener();
-        startLocation();
+        initPermission();
     }
 
     @Override
@@ -238,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
                             doWhenLocationSucess();
                         } else {
                             //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
+                            showToastWithErrorInfo(loc.getErrorCode());
                             Log.e("AmapError", "location Error, ErrCode:"
                                     + loc.getErrorCode() + ", errInfo:"
                                     + loc.getErrorInfo());
@@ -365,6 +377,26 @@ public class MainActivity extends AppCompatActivity {
         mOption.setWifiScan(true); //可选，设置是否开启wifi扫描。默认为true，如果设置为false会同时停止主动刷新，停止以后完全依赖于系统刷新，定位位置可能存在误差
         mOption.setMockEnable(true);//如果您希望位置被模拟，请通过setMockEnable(true);方法开启允许位置模拟
         return mOption;
+    }
+
+    private void initPermission() {
+
+        // 版本判断。当手机系统大于 23 时，才有必要去判断权限是否获取
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // 检查该权限是否已经获取
+            int i = ContextCompat.checkSelfPermission(getApplicationContext(), permissions[0]);
+            int l = ContextCompat.checkSelfPermission(getApplicationContext(), permissions[1]);
+            int m = ContextCompat.checkSelfPermission(getApplicationContext(), permissions[2]);
+            int n = ContextCompat.checkSelfPermission(getApplicationContext(), permissions[3]);
+            // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
+            if (i != PackageManager.PERMISSION_GRANTED || l != PackageManager.PERMISSION_GRANTED || m != PackageManager.PERMISSION_GRANTED ||
+                    n != PackageManager.PERMISSION_GRANTED) {
+                // 如果没有授予该权限，就去提示用户请求
+                ActivityCompat.requestPermissions(this, permissions, 321);
+            } else {
+                startLocation();
+            }
+        }
     }
 
     /**
@@ -530,6 +562,27 @@ public class MainActivity extends AppCompatActivity {
         geocodeSearch.setOnGeocodeSearchListener(mOnGeocodeSearchListener);
     }
 
+    private void showToastWithErrorInfo(int error) {
+        String tips = "定位错误码：" + error;
+        switch (error) {
+            case 4:
+                tips = "请检查设备网络是否通畅，检查通过接口设置的网络访问超时时间，建议采用默认的30秒。";
+                break;
+            case 7:
+                tips = "请仔细检查key绑定的sha1值与apk签名sha1值是否对应。";
+                break;
+            case 12:
+                tips = "请在设备的设置中开启app的定位权限。";
+                break;
+            case 18:
+                tips = "建议手机关闭飞行模式，并打开WIFI开关";
+                break;
+            case 19:
+                tips = "建议手机插上sim卡，打开WIFI开关";
+                break;
+        }
+        Toast.makeText(MainActivity.this.getApplicationContext(), tips, Toast.LENGTH_LONG).show();
+    }
 
     //重写Poi搜索监听器，可扩展上拉加载数据，下拉刷新
     class onPoiSearchLintener implements PoiSearch.OnPoiSearchListener {
@@ -567,4 +620,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 用户权限 申请 的回调方法
+     *
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 321) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    //如果没有获取权限，那么可以提示用户去设置界面--->应用权限开启权限
+                    Toast toast = Toast.makeText(this, "请开启权限", Toast.LENGTH_LONG);
+                    toast.setGravity(Gravity.CENTER, 0, 0);
+                    toast.show();
+                } else {
+                    //获取权限成功
+                    startLocation();
+                }
+            }
+        }
+    }
 }
